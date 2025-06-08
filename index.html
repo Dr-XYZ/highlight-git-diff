@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>Git Diff 比較工具</title>
   <style>
     body { font-family: monospace; padding: 20px; }
@@ -19,14 +19,23 @@
     <option value="line">逐行模式</option>
     <option value="word">逐字模式</option>
   </select>
-  <br>
+  <br />
   <textarea id="diffInput" placeholder="貼上 git diff 輸出..."></textarea>
-  <br>
+  <br />
   <button onclick="processDiff()">顯示差異</button>
   <div class="output" id="diffOutput"></div>
 
   <script src="https://cdn.jsdelivr.net/npm/diff@5.1.0/dist/diff.min.js"></script>
   <script>
+    // 將字串中的 HTML 特殊字元轉義，避免瀏覽器解析成 HTML
+    function escapeHtml(text) {
+      return text.replace(/&/g, "&amp;")
+                 .replace(/</g, "&lt;")
+                 .replace(/>/g, "&gt;")
+                 .replace(/"/g, "&quot;")
+                 .replace(/'/g, "&#039;");
+    }
+
     function processDiff() {
       const mode = document.getElementById('mode').value;
       const input = document.getElementById('diffInput').value;
@@ -45,21 +54,26 @@
           } else if (line.startsWith('-') && !line.startsWith('---')) {
             div.classList.add('deleted');
           }
+          // 逐行模式純文字顯示，不解析 HTML
           div.textContent = line;
           output.appendChild(div);
         }
 
         if (mode === 'word') {
-          if (line.match(/\[-.*?-\]/) || line.match(/\{\+.*?\+\}/)) {
-            const replaced = line
+          // 先把 HTML 特殊字元轉義
+          const escapedLine = escapeHtml(line);
+
+          if (escapedLine.match(/\[-.*?-\]/) || escapedLine.match(/\{\+.*?\+\}/)) {
+            // 將 diff 格式轉成 <span> 標籤並渲染
+            const replaced = escapedLine
               .replace(/\[-(.*?)\-\]/g, '<span class="deleted">$1</span>')
               .replace(/\{\+(.*?)\+\}/g, '<span class="added">$1</span>');
             div.innerHTML = replaced;
-            output.appendChild(div);
           } else {
+            // 沒有差異標記就純文字顯示
             div.textContent = line;
-            output.appendChild(div);
           }
+          output.appendChild(div);
         }
       }
     }
