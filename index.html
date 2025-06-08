@@ -25,9 +25,7 @@
   <button onclick="processDiff()">顯示差異</button>
   <div class="output" id="diffOutput"></div>
 
-  <script src="https://cdn.jsdelivr.net/npm/diff@5.1.0/dist/diff.min.js"></script>
   <script>
-    // 將字串中的 HTML 特殊字元轉義，避免瀏覽器解析成 HTML
     function escapeHtml(text) {
       return text.replace(/&/g, "&amp;")
                  .replace(/</g, "&lt;")
@@ -39,42 +37,29 @@
     function processDiff() {
       const mode = document.getElementById('mode').value;
       const input = document.getElementById('diffInput').value;
-      const lines = input.split('\n');
       const output = document.getElementById('diffOutput');
       output.innerHTML = '';
 
-      for (let i = 0; i < lines.length; i++) {
-        const line = lines[i];
-        const div = document.createElement('div');
-        div.classList.add('line');
-
-        if (mode === 'line') {
+      if (mode === 'line') {
+        const lines = input.split('\n');
+        for (const line of lines) {
+          const div = document.createElement('div');
+          div.classList.add('line');
           if (line.startsWith('+') && !line.startsWith('+++')) {
             div.classList.add('added');
           } else if (line.startsWith('-') && !line.startsWith('---')) {
             div.classList.add('deleted');
           }
-          // 逐行模式純文字顯示，不解析 HTML
           div.textContent = line;
           output.appendChild(div);
         }
-
-        if (mode === 'word') {
-          // 先把 HTML 特殊字元轉義
-          const escapedLine = escapeHtml(line);
-
-          if (escapedLine.match(/\[-.*?-\]/) || escapedLine.match(/\{\+.*?\+\}/)) {
-            // 將 diff 格式轉成 <span> 標籤並渲染
-            const replaced = escapedLine
-              .replace(/\[-(.*?)\-\]/g, '<span class="deleted">$1</span>')
-              .replace(/\{\+(.*?)\+\}/g, '<span class="added">$1</span>');
-            div.innerHTML = replaced;
-          } else {
-            // 沒有差異標記就純文字顯示
-            div.textContent = line;
-          }
-          output.appendChild(div);
-        }
+      } else if (mode === 'word') {
+        let escaped = escapeHtml(input);
+        escaped = escaped
+          .replace(/\[-(.*?)\-\]/g, '<span class="deleted">$1</span>')
+          .replace(/\{\+(.*?)\+\}/g, '<span class="added">$1</span>')
+          .replace(/\n/g, '<br>');
+        output.innerHTML = escaped;
       }
     }
   </script>
