@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <title>Git Diff 高亮顯示</title>
+  <style>
+    body {
+      font-family: monospace;
+      padding: 20px;
+    }
+    textarea {
+      width: 100%;
+      height: 200px;
+      margin-bottom: 20px;
+    }
+    .output {
+      white-space: pre-wrap;
+      background: #f4f4f4;
+      padding: 10px;
+      border: 1px solid #ccc;
+    }
+    .added {
+      background-color: #e6ffed;
+      color: #22863a;
+    }
+    .deleted {
+      background-color: #ffeef0;
+      color: #cb2431;
+    }
+  </style>
+</head>
+<body>
+
+  <h2>Git Diff 高亮顯示</h2>
+  <textarea id="diffInput" placeholder="請貼上 git diff 結果..."></textarea>
+  <button onclick="highlightDiff()">顯示高亮</button>
+
+  <div class="output" id="diffOutput"></div>
+
+  <script>
+    function highlightDiff() {
+      const input = document.getElementById('diffInput').value;
+      const lines = input.split('\n');
+      const outputDiv = document.getElementById('diffOutput');
+      outputDiv.innerHTML = ''; // 清空前次結果
+
+      lines.forEach(line => {
+        const div = document.createElement('div');
+
+        if (line.startsWith('+') && !line.startsWith('+++')) {
+          div.classList.add('added');
+        } else if (line.startsWith('-') && !line.startsWith('---')) {
+          div.classList.add('deleted');
+        }
+
+        div.textContent = line;
+        outputDiv.appendChild(div);
+      });
+    }
+  </script>
+
+</body>
+</html>
