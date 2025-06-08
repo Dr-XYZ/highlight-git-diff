@@ -2,62 +2,65 @@
 <html lang="zh-TW">
 <head>
   <meta charset="UTF-8">
-  <title>Git Diff 高亮顯示</title>
+  <title>Git Diff 比較工具</title>
   <style>
-    body {
-      font-family: monospace;
-      padding: 20px;
-    }
-    textarea {
-      width: 100%;
-      height: 200px;
-      margin-bottom: 20px;
-    }
-    .output {
-      white-space: pre-wrap;
-      background: #f4f4f4;
-      padding: 10px;
-      border: 1px solid #ccc;
-    }
-    .added {
-      background-color: #e6ffed;
-      color: #22863a;
-    }
-    .deleted {
-      background-color: #ffeef0;
-      color: #cb2431;
-    }
+    body { font-family: monospace; padding: 20px; }
+    textarea { width: 100%; height: 200px; margin-bottom: 10px; }
+    .output { white-space: pre-wrap; background: #f8f8f8; padding: 10px; border: 1px solid #ccc; }
+    .added { background-color: #e6ffed; color: #22863a; }
+    .deleted { background-color: #ffeef0; color: #cb2431; }
+    select, button { margin-bottom: 10px; }
   </style>
 </head>
 <body>
-
-  <h2>Git Diff 高亮顯示</h2>
-  <textarea id="diffInput" placeholder="請貼上 git diff 結果..."></textarea>
-  <button onclick="highlightDiff()">顯示高亮</button>
-
+  <h2>Git Diff 檢視器</h2>
+  <select id="mode">
+    <option value="line">逐行模式</option>
+    <option value="word">逐字模式</option>
+  </select>
+  <br>
+  <textarea id="diffInput" placeholder="貼上 git diff 輸出..."></textarea>
+  <br>
+  <button onclick="processDiff()">顯示差異</button>
   <div class="output" id="diffOutput"></div>
 
+  <script src="https://cdn.jsdelivr.net/npm/diff@5.1.0/dist/diff.min.js"></script>
   <script>
-    function highlightDiff() {
+    function processDiff() {
+      const mode = document.getElementById('mode').value;
       const input = document.getElementById('diffInput').value;
       const lines = input.split('\n');
-      const outputDiv = document.getElementById('diffOutput');
-      outputDiv.innerHTML = ''; // 清空前次結果
+      const output = document.getElementById('diffOutput');
+      output.innerHTML = '';
 
-      lines.forEach(line => {
+      for (let i = 0; i < lines.length; i++) {
+        const line = lines[i];
         const div = document.createElement('div');
 
-        if (line.startsWith('+') && !line.startsWith('+++')) {
-          div.classList.add('added');
-        } else if (line.startsWith('-') && !line.startsWith('---')) {
-          div.classList.add('deleted');
+        if (mode === 'line') {
+          if (line.startsWith('+') && !line.startsWith('+++')) {
+            div.className = 'added';
+          } else if (line.startsWith('-') && !line.startsWith('---')) {
+            div.className = 'deleted';
+          }
+          div.textContent = line;
+          output.appendChild(div);
         }
 
-        div.textContent = line;
-        outputDiv.appendChild(div);
-      });
+        if (mode === 'word') {
+          if (line.match(/\[-.*?-\]/) || line.match(/\{\+.*?\+\}/)) {
+            const replaced = line
+              .replace(/\[-(.*?)\-\]/g, '<span class="deleted">$1</span>')
+              .replace(/\{\+(.*?)\+\}/g, '<span class="added">$1</span>');
+            div.innerHTML = replaced;
+            output.appendChild(div);
+          } else {
+            div.textContent = line;
+            output.appendChild(div);
+          }
+        }
+      }
     }
   </script>
-
 </body>
 </html>
